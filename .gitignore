@@ -1,0 +1,17 @@
+# Build outputs
+build/
+.gradle/
+
+# Local machine config (SDK path)
+local.properties
+
+# Local SDK installs
+android-sdk/
+
+# OS / IDE noise
+.DS_Store
+*.iml
+.idea/
+captures/
+
+# NOTE: generated frames under app/src/main/assets/frames/ ARE committed on purpose.
