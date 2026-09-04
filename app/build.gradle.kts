@@ -7,6 +7,7 @@ import java.awt.geom.Ellipse2D
 import java.awt.geom.Point2D
 import java.awt.image.BufferedImage
 import java.io.File
+import java.util.Properties
 import java.util.Random
 import javax.imageio.ImageIO
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -16,9 +17,44 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Release signing is configured only when keystore.properties exists (it is not
+// checked in). Without it, `assembleDebug` still works and release builds are
+// simply unsigned.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
+}
+val hasReleaseKeystore = keystoreProperties.getProperty("storeFile") != null
+
 android {
     namespace = "com.peakmotion.ebbfold"
     compileSdk = 35
+
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+            // Keep the building repo's commit SHA out of shipped APKs.
+            vcsInfo { include = false }
+        }
+    }
 
     flavorDimensions += "wallpaper"
     productFlavors {
@@ -31,6 +67,10 @@ android {
         create("fluxfold") {
             dimension = "wallpaper"
             applicationId = "com.peakmotion.fluxfold"
+        }
+        create("fluxfold2") {
+            dimension = "wallpaper"
+            applicationId = "com.peakmotion.fluxfold2"
         }
     }
 

@@ -15,3 +15,7 @@ android-sdk/
 captures/
 
 # NOTE: generated frames under app/src/main/assets/frames/ ARE committed on purpose.
+
+# Release signing material
+keystore/
+keystore.properties
